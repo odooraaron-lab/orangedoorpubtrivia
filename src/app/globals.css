@@ -1,0 +1,395 @@
+@import "tailwindcss";
+
+@theme {
+  /* Orange Door Pub Trivia: black carbon plate, brand orange, white. */
+  --color-ink: #0d0d0d;
+  --color-coal: #191919;
+  --color-coal-2: #222222;
+  --color-line: #333333;
+  /* "red" is the main action colour (kept as a name from the bingo portal): brand orange. */
+  --color-red: #f47d20;
+  --color-red-deep: #dc6a10;
+  --color-red-bright: #ff9a4d;
+  --color-sun: #ffb347;
+  --color-tang: #f47d20;
+  --color-paper: #ffffff;
+  --color-mist: #bdbdbd;
+  --color-fog: #8f8f8f;
+  --color-ok: #3ccf8e;
+  --color-danger: #ff5d68;
+
+  --font-display: Anton, Impact, "Arial Narrow Bold", sans-serif;
+  --font-marker: "Permanent Marker", "Comic Sans MS", cursive;
+  --font-sans: "Archivo Variable", Archivo, Arial, Helvetica, sans-serif;
+
+  --radius-card: 18px;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    /* A dark diamond-plate texture, like the carbon backgrounds on the trivia graphics. */
+    background-color: var(--color-ink);
+    background-image:
+      linear-gradient(135deg, rgb(255 255 255 / 0.035) 25%, transparent 25%),
+      linear-gradient(225deg, rgb(255 255 255 / 0.035) 25%, transparent 25%),
+      linear-gradient(45deg, rgb(0 0 0 / 0.5) 25%, transparent 25%),
+      linear-gradient(315deg, rgb(0 0 0 / 0.5) 25%, transparent 25%);
+    background-position: 3px 0, 3px 0, 0 0, 0 0;
+    background-size: 6px 6px;
+    color: var(--color-paper);
+    font-family: var(--font-sans);
+    font-size: 17px;
+    line-height: 1.6;
+    min-height: 100dvh;
+    overflow-x: clip;
+  }
+
+  h1,
+  h2,
+  h3,
+  .display {
+    font-family: var(--font-display);
+    font-weight: 400;
+    line-height: 1.08;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    text-wrap: balance;
+  }
+
+  /* Plain-type headings in the portal and admin keep their normal case. */
+  h1.font-sans,
+  h2.font-sans,
+  h3.font-sans {
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-sun);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: var(--color-red);
+    color: #111;
+  }
+}
+
+@layer components {
+  .wrap {
+    width: 100%;
+    max-width: 1180px;
+    margin-inline: auto;
+    padding-inline: 20px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 46px;
+    padding: 0.6rem 1.35rem;
+    border-radius: 6px;
+    font-weight: 650;
+    font-size: 0.98rem;
+    line-height: 1.2;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+    white-space: nowrap;
+  }
+  .btn:active {
+    transform: translateY(1px);
+  }
+  .btn:disabled,
+  .btn[aria-disabled="true"] {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  .btn-red,
+  .btn-orange {
+    background: var(--color-red);
+    color: #111;
+    font-weight: 750;
+  }
+  .btn-red:hover,
+  .btn-orange:hover {
+    background: var(--color-red-deep);
+  }
+  .btn-sun {
+    background: var(--color-sun);
+    color: #1b1b1b;
+  }
+  .btn-sun:hover {
+    background: #e6b22a;
+  }
+  .btn-ghost {
+    border: 1.5px solid rgb(255 255 255 / 0.35);
+    color: white;
+  }
+  .btn-ghost:hover {
+    border-color: white;
+    background: rgb(255 255 255 / 0.06);
+  }
+  .btn-quiet {
+    color: var(--color-mist);
+    min-height: 38px;
+    padding: 0.4rem 0.8rem;
+  }
+  .btn-quiet:hover {
+    color: white;
+    background: rgb(255 255 255 / 0.06);
+  }
+  .btn-sm {
+    min-height: 36px;
+    padding: 0.35rem 0.85rem;
+    font-size: 0.9rem;
+  }
+  .btn-danger {
+    border: 1.5px solid rgb(255 93 104 / 0.5);
+    color: var(--color-danger);
+  }
+  .btn-danger:hover {
+    background: rgb(212 47 60 / 0.15);
+  }
+
+  .panel {
+    background: var(--color-coal);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+  }
+
+  /* The brand's handwritten marker lettering ("FREE ENTRY - GREAT PRIZES!") */
+  .marker {
+    font-family: var(--font-marker);
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    text-transform: none;
+  }
+
+  /* A game's main file (the PowerPoint): an orange edge, like the boxes on the posters. */
+  .panel-orange {
+    border: 2px solid var(--color-red);
+    box-shadow: 6px 6px 0 rgb(244 125 32 / 0.25);
+  }
+
+  /* A category on the library screen: a black card with an orange torn-paper edge. */
+  .category-card {
+    background: var(--color-coal);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .category-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 6px;
+    background: var(--color-red);
+  }
+  .category-card:hover {
+    border-color: var(--color-red);
+    transform: translateY(-1px);
+  }
+  .category-card-badge {
+    background: var(--color-red);
+    color: #111;
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    transform: rotate(-6deg);
+    border-radius: 6px;
+  }
+
+  /* Orange paper strip with a torn top and bottom edge, as on the trivia posters. */
+  .torn-orange {
+    position: relative;
+    background:
+      repeating-conic-gradient(from 0deg at 80% 120%, rgb(255 255 255 / 0.06) 0deg 6deg, transparent 6deg 14deg),
+      var(--color-red);
+    color: #111;
+    --tear: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 10' preserveAspectRatio='none'%3E%3Cpath d='M0 10V6l4-2 5 3 6-4 4 2 7-3 5 4 6-3 3 2 8-4 4 3 6-2 5 3 7-4 4 2 6-3 5 4 6-2 4 2 7-4 5 3 3-1 10 2v6z'/%3E%3C/svg%3E");
+  }
+  .torn-orange::before,
+  .torn-orange::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 14px;
+    background: var(--color-red);
+    mask: var(--tear) 0 0 / 100% 100%;
+  }
+  .torn-orange::before {
+    bottom: calc(100% - 1px);
+  }
+  .torn-orange::after {
+    top: calc(100% - 1px);
+    transform: scaleY(-1);
+  }
+
+  .label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+    color: #e6eaea;
+  }
+  .hint {
+    font-size: 0.85rem;
+    color: var(--color-fog);
+    margin-top: 0.3rem;
+  }
+  .field {
+    width: 100%;
+    min-height: 46px;
+    padding: 0.6rem 0.8rem;
+    border-radius: 8px;
+    background: #0f1212;
+    border: 1.5px solid var(--color-line);
+    color: white;
+    font: inherit;
+    font-size: 1rem;
+  }
+  .field::placeholder {
+    color: #6b7574;
+  }
+  .field:focus {
+    outline: none;
+    border-color: var(--color-sun);
+  }
+  textarea.field {
+    min-height: 140px;
+    resize: vertical;
+  }
+  select.field {
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, #b5bebd 50%),
+      linear-gradient(135deg, #b5bebd 50%, transparent 50%);
+    background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%;
+    background-size: 5px 5px;
+    background-repeat: no-repeat;
+    padding-right: 2.2rem;
+  }
+
+  .check {
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+    cursor: pointer;
+  }
+  .check input {
+    width: 20px;
+    height: 20px;
+    margin-top: 3px;
+    accent-color: var(--color-red);
+    flex: none;
+  }
+
+  .alert {
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+  }
+  .alert-error {
+    background: rgb(212 47 60 / 0.14);
+    border: 1px solid rgb(255 93 104 / 0.45);
+    color: #ffd5d8;
+  }
+  .alert-ok {
+    background: rgb(60 207 142 / 0.12);
+    border: 1px solid rgb(60 207 142 / 0.4);
+    color: #c9f5e0;
+  }
+  .alert-info {
+    background: rgb(245 195 59 / 0.1);
+    border: 1px solid rgb(245 195 59 / 0.35);
+    color: #fbe9b5;
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.1rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 650;
+    background: rgb(255 255 255 / 0.08);
+    color: var(--color-mist);
+  }
+
+  /* Long-form content on guide pages */
+  .copy {
+    max-width: 68ch;
+    color: #dfe4e4;
+  }
+  .copy p + p {
+    margin-top: 1rem;
+  }
+  .copy strong {
+    color: white;
+  }
+  .copy ul {
+    list-style: disc;
+    padding-left: 1.3rem;
+    margin-top: 0.75rem;
+  }
+  .copy li + li {
+    margin-top: 0.35rem;
+  }
+  .copy a {
+    color: var(--color-sun);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+  }
+  .table th {
+    text-align: left;
+    font-weight: 600;
+    color: var(--color-fog);
+    font-size: 0.82rem;
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid var(--color-line);
+    white-space: nowrap;
+  }
+  .table td {
+    padding: 0.7rem 0.75rem;
+    border-bottom: 1px solid rgb(52 60 60 / 0.6);
+    vertical-align: middle;
+  }
+  .table tr:last-child td {
+    border-bottom: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

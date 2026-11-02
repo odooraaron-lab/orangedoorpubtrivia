@@ -1,0 +1,106 @@
+// Runs before every build (see "build" in package.json):
+//   1. applies any new database migrations in ./drizzle
+//   2. adds the starter categories if the library is empty
+//   3. creates the first admin from ADMIN_EMAIL / ADMIN_PASSWORD if that user doesn't exist yet;
+//      with ADMIN_RESET_PASSWORD=yes it also sets that password on the existing account
+//      (for when the admin login is lost). Remove ADMIN_RESET_PASSWORD after logging in.
+//
+// Safe to run repeatedly. Locally it skips everything when no database is set;
+// on Vercel it stops the build, because the site can't work without one.
+
+import { randomBytes, scrypt as scryptCb } from "node:crypto";
+import { promisify } from "node:util";
+import pg from "pg";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { migrate } from "drizzle-orm/node-postgres/migrator";
+import { findDatabaseUrl } from "./database-url.mjs";
+
+const scrypt = promisify(scryptCb);
+
+// Keep in sync with src/lib/password.ts
+async function hashPassword(password) {
+  const N = 16384, r = 8, p = 1;
+  const salt = randomBytes(16);
+  const key = await scrypt(password.normalize("NFKC"), salt, 64, { N, r, p, maxmem: 64 * 1024 * 1024 });
+  return `scrypt$${N}$${r}$${p}$${salt.toString("base64url")}$${Buffer.from(key).toString("base64url")}`;
+}
+
+const STARTER_CATEGORIES = [
+  ["weekly-trivia", "Weekly Trivia", "This week's game and the ones before it."],
+  ["themed-nights", "Themed Nights", "Special games for holidays and themed events."],
+];
+
+const found = findDatabaseUrl();
+if (!found) {
+  const help =
+    "No database connection string found (DATABASE_URL).\n" +
+    "In Vercel: Storage → your Neon database → Connect Project → tick Production, Preview and Development.\n" +
+    "Then redeploy. The tables and your admin login are created automatically on that deploy.";
+  if (process.env.VERCEL === "1") {
+    console.error(`\n[migrate] ${help}\n`);
+    process.exit(1);
+  }
+  console.warn(`[migrate] ${help.split("\n")[0]} Skipping migrations.`);
+  process.exit(0);
+}
+const url = found.url;
+console.log(`[migrate] using ${found.key}`);
+
+const pool = new pg.Pool({ connectionString: url, max: 1 });
+
+try {
+  const db = drizzle(pool);
+  await migrate(db, { migrationsFolder: "drizzle" });
+  console.log("[migrate] database is up to date");
+
+  const { rows: [{ count }] } = await pool.query("select count(*)::int as count from categories");
+  if (count === 0) {
+    for (const [i, [slug, name, description]] of STARTER_CATEGORIES.entries()) {
+      await pool.query(
+        "insert into categories (slug, name, description, sort_order) values ($1, $2, $3, $4) on conflict (slug) do nothing",
+        [slug, name, description, (i + 1) * 10],
+      );
+    }
+    console.log(`[migrate] added ${STARTER_CATEGORIES.length} starter categories`);
+  }
+
+  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  const resetAdmin = /^(1|true|yes)$/i.test(process.env.ADMIN_RESET_PASSWORD?.trim() ?? "");
+  if (adminEmail && adminPassword) {
+    if (adminPassword.length < 10) {
+      console.warn("[migrate] ADMIN_PASSWORD must be at least 10 characters, admin not created.");
+    } else {
+      const existing = await pool.query("select id from users where email = $1", [adminEmail]);
+      if (existing.rowCount === 0) {
+        await pool.query(
+          "insert into users (email, name, role, access_all, password_hash) values ($1, $2, 'admin', true, $3)",
+          [adminEmail, "Admin", await hashPassword(adminPassword)],
+        );
+        console.log(`[migrate] created admin user ${adminEmail}`);
+      } else if (resetAdmin) {
+        const id = existing.rows[0].id;
+        await pool.query(
+          "update users set password_hash = $2, role = 'admin', access_all = true, is_active = true where id = $1",
+          [id, await hashPassword(adminPassword)],
+        );
+        await pool.query("delete from sessions where user_id = $1", [id]);
+        await pool.query("delete from auth_attempts where email = $1 and success = false", [adminEmail]);
+        console.log(`[migrate] reset the password for ${adminEmail}. Remove ADMIN_RESET_PASSWORD and ADMIN_PASSWORD now.`);
+      }
+    }
+  } else if (resetAdmin) {
+    console.warn("[migrate] ADMIN_RESET_PASSWORD is set, but ADMIN_EMAIL and ADMIN_PASSWORD are needed too.");
+  }
+
+  // Shows in the build log which admin logins this database has (handy when one won't work).
+  const { rows: admins } = await pool.query("select email, is_active from users where role = 'admin' order by created_at");
+  console.log(
+    `[migrate] admin logins: ${admins.length ? admins.map((a) => a.email + (a.is_active ? "" : " (switched off)")).join(", ") : "none"}`,
+  );
+} catch (err) {
+  console.error("[migrate] failed:", err);
+  process.exitCode = 1;
+} finally {
+  await pool.end();
+}

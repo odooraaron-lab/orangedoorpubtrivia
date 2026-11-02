@@ -73,7 +73,7 @@ export default async function GamePage({ params }: { params: Promise<{ game: str
         <div className="mt-10 grid gap-10">
           {presentation && (
             <section aria-labelledby="ppt-heading">
-              <h2 id="ppt-heading" className="marker text-xl text-tang">
+              <h2 id="ppt-heading" className="font-sans text-lg font-bold text-tang">
                 The presentation
               </h2>
               <ul className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -83,7 +83,7 @@ export default async function GamePage({ params }: { params: Promise<{ game: str
           )}
           {pdfs.length > 0 && (
             <section aria-labelledby="pdf-heading">
-              <h2 id="pdf-heading" className="marker text-xl text-tang">
+              <h2 id="pdf-heading" className="font-sans text-lg font-bold text-tang">
                 Printables
               </h2>
               <ul className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

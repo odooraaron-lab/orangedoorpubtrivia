@@ -37,7 +37,7 @@ export default async function PortalHomePage() {
         </div>
       ) : (
         <section aria-labelledby="games-heading" className="mt-10">
-          <h2 id="games-heading" className="marker text-xl text-tang">
+          <h2 id="games-heading" className="font-sans text-lg font-bold text-tang">
             Your games
           </h2>
           <ul className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

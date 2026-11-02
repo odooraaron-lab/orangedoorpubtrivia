@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { asc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
-import { categories, files, playlists } from "@/db/schema";
+import { files, playlists } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import { formatBytes, formatDate, kindLabel } from "@/lib/format";
 import { ActionForm } from "@/components/admin/action-form";
@@ -17,7 +17,7 @@ import { GameFilesEditor } from "./game-files";
 
 export const metadata: Metadata = { title: "Game" };
 
-/** The arrow to the previous or next game in the category (greyed out at either end). */
+/** The arrow to the previous or next game (greyed out at either end). */
 function ShowStep({ show, direction }: { show: { id: string; name: string } | null; direction: "prev" | "next" }) {
   const Icon = direction === "prev" ? ChevronLeft : ChevronRight;
   const word = direction === "prev" ? "Previous" : "Next";
@@ -47,27 +47,13 @@ export default async function PlaylistAdminPage({ params }: { params: Promise<{ 
   const { playlistId } = await params;
   if (!z.uuid().safeParse(playlistId).success) notFound();
 
-  const [row] = await db
-    .select({ playlist: playlists, category: categories })
-    .from(playlists)
-    .innerJoin(categories, eq(categories.id, playlists.categoryId))
-    .where(eq(playlists.id, playlistId))
-    .limit(1);
-  if (!row) notFound();
-  const { playlist, category } = row;
+  const [playlist] = await db.select().from(playlists).where(eq(playlists.id, playlistId)).limit(1);
+  if (!playlist) notFound();
 
-  const [items, allCategories, siblings] = await Promise.all([
+  const [items, siblings] = await Promise.all([
     db.select().from(files).where(eq(files.playlistId, playlistId)).orderBy(asc(files.sortOrder), asc(files.title)),
-    db
-      .select({ id: categories.id, name: categories.name })
-      .from(categories)
-      .orderBy(asc(categories.sortOrder), asc(categories.name)),
-    // The category's games, in the same order as its list, for the previous / next arrows.
-    db
-      .select({ id: playlists.id, name: playlists.name })
-      .from(playlists)
-      .where(eq(playlists.categoryId, category.id))
-      .orderBy(asc(playlists.sortOrder), asc(playlists.name)),
+    // All games, in the same order as the list, for the previous / next arrows.
+    db.select({ id: playlists.id, name: playlists.name }).from(playlists).orderBy(asc(playlists.sortOrder), asc(playlists.name)),
   ]);
   const at = siblings.findIndex((p) => p.id === playlist.id);
   const prev = at > 0 ? siblings[at - 1] : null;
@@ -82,13 +68,12 @@ export default async function PlaylistAdminPage({ params }: { params: Promise<{ 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Breadcrumbs
           items={[
-            { label: "Library", href: "/admin/library" },
-            { label: category.name, href: `/admin/library/${category.id}` },
+            { label: "Games", href: "/admin/library" },
             { label: playlist.name },
           ]}
         />
         {siblings.length > 1 && (
-          <nav aria-label={`Other games in ${category.name}`} className="flex items-center gap-1.5">
+          <nav aria-label="Other games" className="flex items-center gap-1.5">
             <ShowStep show={prev} direction="prev" />
             <span className="px-1 text-sm whitespace-nowrap text-mist">
               {at + 1} of {siblings.length}
@@ -104,7 +89,7 @@ export default async function PlaylistAdminPage({ params }: { params: Promise<{ 
         ) : (
           <span className="tag">Hidden from customers</span>
         )}
-        <Link href={`/portal/${category.slug}/${playlist.slug}`} className="btn btn-quiet btn-sm ml-auto">
+        <Link href={`/portal/${playlist.slug}`} className="btn btn-quiet btn-sm ml-auto">
           View as customer
         </Link>
       </div>
@@ -195,37 +180,17 @@ export default async function PlaylistAdminPage({ params }: { params: Promise<{ 
                   </label>
                   <input id="pl-description" name="description" className="field" defaultValue={playlist.description} />
                 </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label htmlFor="pl-category" className="label">
-                      Category
-                    </label>
-                    <select
-                      key={category.id}
-                      id="pl-category"
-                      name="categoryId"
-                      className="field"
-                      defaultValue={category.id}
-                    >
-                      {allCategories.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label htmlFor="pl-sort" className="label">
-                      Order
-                    </label>
-                    <input
-                      id="pl-sort"
-                      name="sortOrder"
-                      type="number"
-                      className="field"
-                      defaultValue={playlist.sortOrder}
-                    />
-                  </div>
+                <div>
+                <label htmlFor="pl-sort" className="label">
+                  Order
+                </label>
+                <input
+                  id="pl-sort"
+                  name="sortOrder"
+                  type="number"
+                  className="field"
+                  defaultValue={playlist.sortOrder}
+                />
                 </div>
                 <div>
                   <label htmlFor="pl-slug" className="label">

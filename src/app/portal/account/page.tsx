@@ -13,7 +13,7 @@ export default async function AccountPage() {
 
   return (
     <>
-      <Breadcrumbs items={[{ label: "Library", href: "/portal" }, { label: "Account" }]} />
+      <Breadcrumbs items={[{ label: "Your games", href: "/portal" }, { label: "Account" }]} />
       <h1 className="mt-4 text-[clamp(2.2rem,5vw,3.2rem)]">Your account</h1>
 
       <div className="mt-10 grid items-start gap-6 lg:grid-cols-[1fr_1.4fr]">

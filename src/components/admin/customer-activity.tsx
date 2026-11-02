@@ -133,7 +133,6 @@ export function DownloadedShows({ shows }: { shows: DownloadedShow[] }) {
             <tr key={s.showId ?? "deleted"}>
               <td>
                 {showLink(s.showId, s.show)}
-                {s.category && <span className="block text-xs text-fog">{s.category}</span>}
               </td>
               <td className="text-mist">
                 {s.showFile ? "The PowerPoint" : "PDFs only"}

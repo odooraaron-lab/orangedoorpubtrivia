@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { asc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
-import { accessGrants, categories, playlists, users } from "@/db/schema";
+import { accessGrants, playlists, users } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import { emailConfigured } from "@/lib/email";
 import { formatDate, formatDateTime } from "@/lib/format";
@@ -40,23 +40,15 @@ export default async function UserPage({
   const [user] = await db.select().from(users).where(eq(users.id, id)).limit(1);
   if (!user) notFound();
 
-  const [grants, cats, pls, summary, shows, timeline] = await Promise.all([
+  const [grants, pls, summary, shows, timeline] = await Promise.all([
     db.select().from(accessGrants).where(eq(accessGrants.userId, id)),
-    db.select().from(categories).orderBy(asc(categories.sortOrder), asc(categories.name)),
     db.select().from(playlists).orderBy(asc(playlists.sortOrder), asc(playlists.name)),
     customerSummary(id),
     customerDownloadedShows(id),
     customerTimeline(id, filter),
   ]);
 
-  const genres = cats.map((c) => ({
-    id: c.id,
-    name: c.name,
-    isPublished: c.isPublished,
-    playlists: pls
-      .filter((p) => p.categoryId === c.id)
-      .map((p) => ({ id: p.id, name: p.name, isPublished: p.isPublished })),
-  }));
+  const games = pls.map((p) => ({ id: p.id, name: p.name, isPublished: p.isPublished }));
 
   const isSelf = admin.id === user.id;
   const title = user.venue || user.name || user.email;
@@ -88,9 +80,8 @@ export default async function UserPage({
           <div className="mt-5">
             <ActionForm action={saveAccess.bind(null, user.id)} submitLabel="Save access">
               <AccessEditor
-                genres={genres}
+                games={games}
                 initialAll={user.accessAll}
-                initialCategories={grants.flatMap((g) => (g.categoryId ? [g.categoryId] : []))}
                 initialPlaylists={grants.flatMap((g) => (g.playlistId ? [g.playlistId] : []))}
               />
             </ActionForm>

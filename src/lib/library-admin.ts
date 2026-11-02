@@ -7,12 +7,31 @@ import { checkLink, type LinkCheck } from "./links";
 import { MAX_PDFS } from "./game-files";
 
 // These would clash with portal pages of the same name.
-const RESERVED_GENRE_SLUGS = new Set(["search", "account"]);
+const RESERVED_SLUGS = new Set(["search", "account"]);
+
+/**
+ * Every game lives in one built-in category (the database keeps the bingo portal's
+ * category → game layout, but customers and admins only ever see the list of games).
+ */
+export const GAMES_CATEGORY_SLUG = "games";
+
+export async function gamesCategoryId() {
+  const [hit] = await db.select({ id: categories.id }).from(categories).where(eq(categories.slug, GAMES_CATEGORY_SLUG)).limit(1);
+  if (hit) return hit.id;
+  const [created] = await db
+    .insert(categories)
+    .values({ slug: GAMES_CATEGORY_SLUG, name: "Games" })
+    .onConflictDoNothing()
+    .returning({ id: categories.id });
+  if (created) return created.id;
+  const [again] = await db.select({ id: categories.id }).from(categories).where(eq(categories.slug, GAMES_CATEGORY_SLUG)).limit(1);
+  return again.id;
+}
 
 export async function uniqueCategorySlug(base: string, exceptId?: string) {
   let slug = base;
   for (let i = 2; ; i++) {
-    if (!RESERVED_GENRE_SLUGS.has(slug)) {
+    if (!RESERVED_SLUGS.has(slug)) {
       const [hit] = await db
         .select({ id: categories.id })
         .from(categories)
@@ -27,6 +46,10 @@ export async function uniqueCategorySlug(base: string, exceptId?: string) {
 export async function uniquePlaylistSlug(categoryId: string, base: string, exceptId?: string) {
   let slug = base;
   for (let i = 2; ; i++) {
+    if (RESERVED_SLUGS.has(slug)) {
+      slug = `${base}-${i}`;
+      continue;
+    }
     const [hit] = await db
       .select({ id: playlists.id })
       .from(playlists)

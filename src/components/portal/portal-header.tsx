@@ -10,12 +10,12 @@ export function PortalHeader({ user, area }: { user: SessionUser; area: "portal"
       ? [
           { href: "/admin", label: "Overview" },
           { href: "/admin/users", label: "Customers" },
-          { href: "/admin/library", label: "Library" },
+          { href: "/admin/library", label: "Games" },
           { href: "/admin/enquiries", label: "Enquiries" },
           { href: "/portal", label: "Customer view" },
         ]
       : [
-          { href: "/portal", label: "Library" },
+          { href: "/portal", label: "Your games" },
           { href: "/portal/account", label: "Account" },
           ...(user.role === "admin" ? [{ href: "/admin", label: "Admin" }] : []),
         ];

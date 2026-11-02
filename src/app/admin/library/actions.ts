@@ -2,13 +2,13 @@
 
 import { redirect } from "next/navigation";
 import { refresh } from "next/cache";
-import { count, eq, max } from "drizzle-orm";
+import { eq, max } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
-import { categories, playlists } from "@/db/schema";
+import { playlists } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import { slugify } from "@/lib/format";
-import { applyGameLinks, uniqueCategorySlug, uniquePlaylistSlug, type GameLinkRow } from "@/lib/library-admin";
+import { applyGameLinks, gamesCategoryId, uniquePlaylistSlug, type GameLinkRow } from "@/lib/library-admin";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
 
 const uuid = z.uuid();
@@ -21,57 +21,11 @@ const sortValue = (fd: FormData) => {
   return Number.isFinite(n) ? Math.max(-100000, Math.min(100000, n)) : 0;
 };
 
-// ── Categories ─────────────────────────────────────────────────────────────────
-
-export async function createCategory(_prev: ActionResult, fd: FormData): Promise<ActionResult> {
-  await requireAdmin();
-  const name = text(fd, "name", 80);
-  if (!name) return fail("Give the category a name.");
-  const [{ top }] = await db.select({ top: max(categories.sortOrder) }).from(categories);
-  await db.insert(categories).values({
-    name,
-    slug: await uniqueCategorySlug(slugify(name)),
-    description: text(fd, "description", 500),
-    sortOrder: (top ?? 0) + 10,
-  });
-  refresh();
-  return ok(`Added ${name}.`);
-}
-
-export async function updateCategory(id: string, _prev: ActionResult, fd: FormData): Promise<ActionResult> {
-  await requireAdmin();
-  if (!uuid.safeParse(id).success) return fail("Unknown category.");
-  const name = text(fd, "name", 80);
-  if (!name) return fail("Give the category a name.");
-  const slug = await uniqueCategorySlug(slugify(text(fd, "slug", 80) || name), id);
-  await db
-    .update(categories)
-    .set({
-      name,
-      slug,
-      description: text(fd, "description", 500),
-      sortOrder: sortValue(fd),
-      isPublished: fd.get("isPublished") === "on",
-    })
-    .where(eq(categories.id, id));
-  refresh();
-  return ok("Category saved.");
-}
-
-export async function deleteCategory(id: string, _prev: ActionResult, _fd: FormData): Promise<ActionResult> {
-  await requireAdmin();
-  if (!uuid.safeParse(id).success) return fail("Unknown category.");
-  const [{ n }] = await db.select({ n: count() }).from(playlists).where(eq(playlists.categoryId, id));
-  if (n > 0) return fail("Move or delete the games in this category first.");
-  await db.delete(categories).where(eq(categories.id, id));
-  redirect("/admin/library");
-}
-
 // ── Games ──────────────────────────────────────────────────────────────
 
-export async function createPlaylist(categoryId: string, _prev: ActionResult, fd: FormData): Promise<ActionResult> {
+export async function createPlaylist(_prev: ActionResult, fd: FormData): Promise<ActionResult> {
   await requireAdmin();
-  if (!uuid.safeParse(categoryId).success) return fail("Unknown category.");
+  const categoryId = await gamesCategoryId();
   const name = text(fd, "name", 120);
   if (!name) return fail("Give the game a name.");
   const [{ top }] = await db
@@ -97,15 +51,14 @@ export async function updatePlaylist(id: string, _prev: ActionResult, fd: FormDa
   if (!uuid.safeParse(id).success) return fail("Unknown game.");
   const name = text(fd, "name", 120);
   if (!name) return fail("Give the game a name.");
-  const categoryId = text(fd, "categoryId", 40);
-  if (!uuid.safeParse(categoryId).success) return fail("Choose a category.");
-  const slug = await uniquePlaylistSlug(categoryId, slugify(text(fd, "slug", 80) || name), id);
+  const [current] = await db.select({ categoryId: playlists.categoryId }).from(playlists).where(eq(playlists.id, id)).limit(1);
+  if (!current) return fail("Unknown game.");
+  const slug = await uniquePlaylistSlug(current.categoryId, slugify(text(fd, "slug", 80) || name), id);
   await db
     .update(playlists)
     .set({
       name,
       slug,
-      categoryId,
       description: text(fd, "description", 500),
       sortOrder: sortValue(fd),
       isPublished: fd.get("isPublished") === "on",
@@ -122,7 +75,7 @@ export async function deletePlaylist(id: string, _prev: ActionResult, _fd: FormD
   if (!playlist) return fail("Unknown game.");
 
   await db.delete(playlists).where(eq(playlists.id, id));
-  redirect(`/admin/library/${playlist.categoryId}`);
+  redirect("/admin/library");
 }
 
 // ── Game files ─────────────────────────────────────────────────────────────

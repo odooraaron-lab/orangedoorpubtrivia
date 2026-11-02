@@ -141,17 +141,13 @@ export async function saveAccess(id: string, _prev: ActionResult, fd: FormData):
   if (!uuid.safeParse(id).success) return fail("Unknown customer.");
 
   const accessAll = fd.get("accessAll") === "on";
-  const categoryIds = [...new Set(fd.getAll("category").map(String))].filter((v) => uuid.safeParse(v).success);
   const playlistIds = [...new Set(fd.getAll("playlist").map(String))].filter((v) => uuid.safeParse(v).success);
 
   try {
     await db.transaction(async (tx) => {
       await tx.update(users).set({ accessAll }).where(eq(users.id, id));
       await tx.delete(accessGrants).where(eq(accessGrants.userId, id));
-      const rows = [
-        ...categoryIds.map((categoryId) => ({ userId: id, categoryId })),
-        ...playlistIds.map((playlistId) => ({ userId: id, playlistId })),
-      ];
+      const rows = playlistIds.map((playlistId) => ({ userId: id, playlistId }));
       if (rows.length) await tx.insert(accessGrants).values(rows);
     });
   } catch (err) {

@@ -1,6 +1,6 @@
 // Runs before every build (see "build" in package.json):
 //   1. applies any new database migrations in ./drizzle
-//   2. adds the starter categories if the library is empty
+//   2. makes sure the built-in "games" category every game sits in exists
 //   3. creates the first admin from ADMIN_EMAIL / ADMIN_PASSWORD if that user doesn't exist yet;
 //      with ADMIN_RESET_PASSWORD=yes it also sets that password on the existing account
 //      (for when the admin login is lost). Remove ADMIN_RESET_PASSWORD after logging in.
@@ -25,10 +25,6 @@ async function hashPassword(password) {
   return `scrypt$${N}$${r}$${p}$${salt.toString("base64url")}$${Buffer.from(key).toString("base64url")}`;
 }
 
-const STARTER_CATEGORIES = [
-  ["weekly-trivia", "Weekly Trivia", "This week's game and the ones before it."],
-  ["themed-nights", "Themed Nights", "Special games for holidays and themed events."],
-];
 
 const found = findDatabaseUrl();
 if (!found) {
@@ -53,16 +49,10 @@ try {
   await migrate(db, { migrationsFolder: "drizzle" });
   console.log("[migrate] database is up to date");
 
-  const { rows: [{ count }] } = await pool.query("select count(*)::int as count from categories");
-  if (count === 0) {
-    for (const [i, [slug, name, description]] of STARTER_CATEGORIES.entries()) {
-      await pool.query(
-        "insert into categories (slug, name, description, sort_order) values ($1, $2, $3, $4) on conflict (slug) do nothing",
-        [slug, name, description, (i + 1) * 10],
-      );
-    }
-    console.log(`[migrate] added ${STARTER_CATEGORIES.length} starter categories`);
-  }
+  // Every game sits in one built-in category, which customers and admins never see.
+  await pool.query(
+    "insert into categories (slug, name, sort_order) values ('games', 'Games', 0) on conflict (slug) do nothing",
+  );
 
   const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
   const adminPassword = process.env.ADMIN_PASSWORD;

@@ -17,7 +17,7 @@ export default async function NewUserPage() {
     <>
       <Breadcrumbs items={[{ label: "Customers", href: "/admin/users" }, { label: "Add a customer" }]} />
       <h1 className="mt-4 text-[clamp(2.2rem,5vw,3rem)]">Add a customer</h1>
-      <p className="mt-2 text-mist">You&apos;ll choose which categories and games they can see on the next screen.</p>
+      <p className="mt-2 text-mist">You&apos;ll choose which games they can download on the next screen.</p>
 
       <div className="panel mt-8 max-w-3xl p-6 sm:p-8">
         <ActionForm action={createUser} submitLabel="Create customer" pendingLabel="Creating…">
@@ -45,7 +45,7 @@ export default async function NewUserPage() {
 
           <label className="check">
             <input type="checkbox" name="accessAll" />
-            <span>Give them access to everything in the library</span>
+            <span>Give them access to every game</span>
           </label>
         </ActionForm>
       </div>

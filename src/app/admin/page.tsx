@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { count, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { categories, downloads, enquiries, files, playlists, users } from "@/db/schema";
+import { downloads, enquiries, files, playlists, users } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import { emailConfigured } from "@/lib/email";
 import { formatBytes, formatDateTime } from "@/lib/format";
@@ -9,10 +9,9 @@ import { formatBytes, formatDateTime } from "@/lib/format";
 export default async function AdminHomePage() {
   await requireAdmin();
 
-  const [[customers], [genres], [lists], [fileStats], [openEnquiries], recentDownloads, latestEnquiries] =
+  const [[customers], [lists], [fileStats], [openEnquiries], recentDownloads, latestEnquiries] =
     await Promise.all([
       db.select({ n: count() }).from(users).where(eq(users.role, "member")),
-      db.select({ n: count() }).from(categories),
       db.select({ n: count() }).from(playlists),
       db
         .select({ n: count(), bytes: sql<number>`coalesce(sum(${files.sizeBytes}), 0)::float8` })
@@ -38,7 +37,6 @@ export default async function AdminHomePage() {
 
   const stats = [
     { label: "Customers", value: customers.n, href: "/admin/users" },
-    { label: "Categories", value: genres.n, href: "/admin/library" },
     { label: "Games", value: lists.n, href: "/admin/library" },
     { label: "Files", value: fileStats.n, sub: formatBytes(fileStats.bytes) || undefined, href: "/admin/library" },
     { label: "New enquiries", value: openEnquiries.n, href: "/admin/enquiries" },
@@ -53,12 +51,12 @@ export default async function AdminHomePage() {
             Add a customer
           </Link>
           <Link href="/admin/library" className="btn btn-ghost">
-            Manage library
+            Manage games
           </Link>
         </div>
       </div>
 
-      <ul className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-5">
+      <ul className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">
         {stats.map((s) => (
           <li key={s.label}>
             <Link href={s.href} className="panel block h-full p-5 hover:border-white/30">

@@ -104,7 +104,7 @@ export function InstallApp({ variant }: { variant: "banner" | "panel" }) {
         <strong className="text-white">Add to Home Screen</strong>.
       </p>
     ) : prompt ? (
-      <p className="text-sm text-mist">It opens straight into your library, full screen, like any other app.</p>
+      <p className="text-sm text-mist">It opens straight into your games, full screen, like any other app.</p>
     ) : platform === "android" ? (
       <p className="text-sm text-mist">
         Open your browser&apos;s menu (⋮), then choose <strong className="text-white">Install app</strong> or{" "}
@@ -124,7 +124,7 @@ export function InstallApp({ variant }: { variant: "banner" | "panel" }) {
           Use it like an app
         </h2>
         {done ? (
-          <p className="mt-2 text-sm text-mist">You&apos;re using the app. It opens straight into your library.</p>
+          <p className="mt-2 text-sm text-mist">You&apos;re using the app. It opens straight into your games.</p>
         ) : (
           <div className="mt-2 grid gap-4">
             <p className="text-mist">Put Pub Trivia on your home screen to open your games in one tap.</p>

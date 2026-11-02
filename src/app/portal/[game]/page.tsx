@@ -3,7 +3,7 @@ import { after } from "next/server";
 import { Download } from "lucide-react";
 import { logActivity } from "@/lib/activity";
 import { requireUser } from "@/lib/auth";
-import { downloadedFiles, getPlaylist } from "@/lib/library";
+import { downloadedFiles, getGame } from "@/lib/library";
 import { formatBytes, kindLabel } from "@/lib/format";
 import { splitGameFiles } from "@/lib/game-files";
 import { Breadcrumbs } from "@/components/portal/breadcrumbs";
@@ -15,7 +15,7 @@ function extensionOf(name: string) {
   return ext && ext !== name && ext.length <= 5 ? ext.toUpperCase() : "";
 }
 
-type GameFile = NonNullable<Awaited<ReturnType<typeof getPlaylist>>>["files"][number];
+type GameFile = NonNullable<Awaited<ReturnType<typeof getGame>>>["files"][number];
 
 function FileCard({ f, featured = false }: { f: GameFile; featured?: boolean }) {
   const meta = [extensionOf(f.fileName), f.sizeBytes ? formatBytes(f.sizeBytes) : ""].filter(Boolean);
@@ -38,12 +38,12 @@ function FileCard({ f, featured = false }: { f: GameFile; featured?: boolean }) 
   );
 }
 
-export default async function GamePage({ params }: { params: Promise<{ genre: string; playlist: string }> }) {
-  const { genre, playlist: gameSlug } = await params;
+export default async function GamePage({ params }: { params: Promise<{ game: string }> }) {
+  const { game: slug } = await params;
   const user = await requireUser();
-  const data = await getPlaylist(user, genre, gameSlug);
+  const data = await getGame(user, slug);
   if (!data) notFound();
-  const { category, playlist: game, files } = data;
+  const { game, files } = data;
   after(() => logActivity(user.id, "show_viewed", { playlistId: game.id, detail: game.name, onceEveryMinutes: 30 }));
 
   // What they've downloaded before, so the page can say so.
@@ -56,8 +56,7 @@ export default async function GamePage({ params }: { params: Promise<{ genre: st
     <DownloadMarks files={doneFiles} show={lastDone?.toISOString() ?? null} showFileIds={files.map((f) => f.id)}>
       <Breadcrumbs
         items={[
-          { label: "Library", href: "/portal" },
-          { label: category.name, href: `/portal/${category.slug}` },
+          { label: "Your games", href: "/portal" },
           { label: game.name },
         ]}
       />

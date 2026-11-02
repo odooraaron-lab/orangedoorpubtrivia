@@ -8,7 +8,7 @@ export const ACTIVITY_FILTERS = {
   all: { label: "Everything", kinds: null },
   downloads: { label: "Downloads", kinds: ["downloaded"] },
   shows: { label: "Games opened", kinds: ["show_viewed"] },
-  searches: { label: "Searches and requests", kinds: ["searched", "category_requested"] },
+  requests: { label: "Requests", kinds: ["searched", "category_requested"] },
   account: {
     label: "Logins and account",
     kinds: ["login", "login_failed", "password_changed", "password_reset"],

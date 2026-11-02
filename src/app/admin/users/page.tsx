@@ -26,7 +26,6 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
       accessExpiresAt: users.accessExpiresAt,
       lastLoginAt: users.lastLoginAt,
       expired: sql<boolean>`coalesce(${users.accessExpiresAt} < now(), false)`,
-      genres: sql<number>`count(${accessGrants.categoryId})::int`,
       playlists: sql<number>`count(${accessGrants.playlistId})::int`,
     })
     .from(users)
@@ -88,12 +87,10 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
                       {u.role === "admin"
                         ? "Admin"
                         : u.accessAll
-                          ? "Everything"
-                          : u.genres + u.playlists === 0
+                          ? "Every game"
+                          : u.playlists === 0
                             ? "Nothing yet"
-                            : [u.genres && `${u.genres} ${u.genres > 1 ? "categories" : "category"}`, u.playlists && `${u.playlists} game${u.playlists > 1 ? "s" : ""}`]
-                                .filter(Boolean)
-                                .join(", ")}
+                            : `${u.playlists} game${u.playlists > 1 ? "s" : ""}`}
                     </td>
                     <td className={expired ? "text-red-bright" : "text-mist"}>
                       {u.accessExpiresAt ? formatDate(u.accessExpiresAt) : "Ongoing"}

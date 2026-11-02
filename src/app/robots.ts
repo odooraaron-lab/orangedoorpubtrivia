@@ -1,13 +1,6 @@
 import type { MetadataRoute } from "next";
-import { SITE } from "@/lib/site";
 
+// The portal is private: ask every search engine to stay out of the whole site.
 export default function robots(): MetadataRoute.Robots {
-  return {
-    rules: {
-      userAgent: "*",
-      allow: "/",
-      disallow: ["/portal", "/admin", "/api", "/login", "/forgot-password", "/reset-password"],
-    },
-    sitemap: `${SITE.url}/sitemap.xml`,
-  };
+  return { rules: { userAgent: "*", disallow: "/" } };
 }

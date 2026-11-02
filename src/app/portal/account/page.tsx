@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { formatDate } from "@/lib/format";
 import { Breadcrumbs } from "@/components/portal/breadcrumbs";
@@ -40,11 +39,7 @@ export default async function AccountPage() {
             ))}
           </dl>
           <p className="mt-6 text-sm text-mist">
-            Need to change your details or access?{" "}
-            <Link href="/contact-us" className="text-white underline underline-offset-4">
-              Contact us
-            </Link>
-            .
+            Need to change your details or access? Email us and we&apos;ll update it.
           </p>
         </section>
 

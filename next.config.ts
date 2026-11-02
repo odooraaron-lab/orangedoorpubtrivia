@@ -25,8 +25,9 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: "/(portal|admin|login|forgot-password|reset-password)(.*)",
-        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+        // Keep every page out of Google and other search engines.
+        source: "/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }],
       },
     ];
   },

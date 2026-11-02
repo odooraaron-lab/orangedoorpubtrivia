@@ -12,11 +12,8 @@ export default function NotFound() {
         We couldn&apos;t find that page. It may have moved, or the link isn&apos;t quite right.
       </p>
       <div className="mt-8 flex flex-wrap gap-3">
-        <Link href="/" className="btn btn-red">
-          Go to the home page
-        </Link>
-        <Link href="/login" className="btn btn-ghost">
-          Customer login
+        <Link href="/portal" className="btn btn-red">
+          Go to your games
         </Link>
       </div>
     </div>

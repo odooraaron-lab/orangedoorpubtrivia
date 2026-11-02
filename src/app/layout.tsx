@@ -3,7 +3,7 @@ import "@fontsource/anton/400.css";
 import "@fontsource/permanent-marker/400.css";
 import "@fontsource-variable/archivo/index.css";
 import "./globals.css";
-import { IMAGES, SITE } from "@/lib/site";
+import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.APP_URL || SITE.url),
@@ -12,13 +12,8 @@ export const metadata: Metadata = {
     template: `%s | ${SITE.name}`,
   },
   description: SITE.description,
-  openGraph: {
-    siteName: SITE.name,
-    type: "website",
-    locale: "en_NZ",
-    images: [{ url: IMAGES.triviaNight }],
-  },
-  twitter: { card: "summary_large_image" },
+  // A private portal: never listed by search engines.
+  robots: { index: false, follow: false, nocache: true, googleBot: { index: false, follow: false } },
   // Opening from the home screen on iPhone: full screen, with this name under the icon.
   appleWebApp: { capable: true, title: SITE.shortName, statusBarStyle: "black" },
 };

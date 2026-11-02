@@ -1,22 +1,23 @@
 import Link from "next/link";
 import { count, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { downloads, enquiries, files, playlists, users } from "@/db/schema";
+import { downloads, files, playlists, users } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import { emailConfigured } from "@/lib/email";
 import { formatBytes, formatDateTime } from "@/lib/format";
+import { ActionForm } from "@/components/admin/action-form";
+import { sendTestEmail } from "./actions";
 
 export default async function AdminHomePage() {
   await requireAdmin();
 
-  const [[customers], [lists], [fileStats], [openEnquiries], recentDownloads, latestEnquiries] =
+  const [[customers], [lists], [fileStats], recentDownloads] =
     await Promise.all([
       db.select({ n: count() }).from(users).where(eq(users.role, "member")),
       db.select({ n: count() }).from(playlists),
       db
         .select({ n: count(), bytes: sql<number>`coalesce(sum(${files.sizeBytes}), 0)::float8` })
         .from(files),
-      db.select({ n: count() }).from(enquiries).where(eq(enquiries.isHandled, false)),
       db
         .select({
           at: downloads.createdAt,
@@ -32,14 +33,12 @@ export default async function AdminHomePage() {
         .where(eq(users.role, "member"))
         .orderBy(desc(downloads.createdAt))
         .limit(10),
-      db.select().from(enquiries).orderBy(desc(enquiries.createdAt)).limit(4),
     ]);
 
   const stats = [
     { label: "Customers", value: customers.n, href: "/admin/users" },
     { label: "Games", value: lists.n, href: "/admin/library" },
     { label: "Files", value: fileStats.n, sub: formatBytes(fileStats.bytes) || undefined, href: "/admin/library" },
-    { label: "New enquiries", value: openEnquiries.n, href: "/admin/enquiries" },
   ];
 
   return (
@@ -56,7 +55,7 @@ export default async function AdminHomePage() {
         </div>
       </div>
 
-      <ul className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">
+      <ul className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-3">
         {stats.map((s) => (
           <li key={s.label}>
             <Link href={s.href} className="panel block h-full p-5 hover:border-white/30">
@@ -70,19 +69,26 @@ export default async function AdminHomePage() {
         ))}
       </ul>
 
-      {!emailConfigured() && (
-        <section className="mt-8 grid gap-3">
-          {!emailConfigured() && (
-            <p className="alert alert-info">
-              <strong>Emails are off.</strong> Customers can&apos;t reset their own passwords and you won&apos;t get
-              emailed about enquiries. Add RESEND_API_KEY in Vercel and redeploy to switch this on, then
-              send a test email from the Enquiries page.
-            </p>
-          )}
-        </section>
-      )}
+      <section className="panel mt-8 p-6">
+        <h2 className="font-sans text-lg font-bold">Email</h2>
+        {emailConfigured() ? (
+          <p className="mt-1 text-sm text-mist">
+            Emails are on: customers can reset their own passwords and you can email new customers an invite.
+          </p>
+        ) : (
+          <p className="alert alert-info mt-3">
+            <strong>Emails are off.</strong> Customers can&apos;t reset their own passwords, and new customers
+            can&apos;t be emailed an invite. Add RESEND_API_KEY in Vercel and redeploy to switch this on.
+          </p>
+        )}
+        <div className="mt-4">
+          <ActionForm action={sendTestEmail} submitLabel="Send me a test email" pendingLabel="Sending…" submitClassName="btn btn-ghost btn-sm">
+            {null}
+          </ActionForm>
+        </div>
+      </section>
 
-      <div className="mt-10 grid items-start gap-6 lg:grid-cols-[1.4fr_1fr]">
+      <div className="mt-10 grid items-start gap-6">
         <section className="panel p-6">
           <h2 className="font-sans text-lg font-bold">Recent downloads</h2>
           {recentDownloads.length === 0 ? (
@@ -118,30 +124,6 @@ export default async function AdminHomePage() {
           )}
         </section>
 
-        <section className="panel p-6">
-          <div className="flex items-center justify-between">
-            <h2 className="font-sans text-lg font-bold">Latest enquiries</h2>
-            <Link href="/admin/enquiries" className="text-sm text-tang hover:underline">
-              See all
-            </Link>
-          </div>
-          {latestEnquiries.length === 0 ? (
-            <p className="mt-3 text-mist">No enquiries yet.</p>
-          ) : (
-            <ul className="mt-3 divide-y divide-line">
-              {latestEnquiries.map((e) => (
-                <li key={e.id} className="py-3">
-                  <p className="font-semibold">
-                    {e.name || e.email}
-                    {!e.isHandled && <span className="tag ml-2 bg-red/20 text-red-bright">New</span>}
-                  </p>
-                  <p className="line-clamp-2 text-sm text-mist">{e.message || "(no message)"}</p>
-                  <p className="mt-1 text-xs text-fog">{formatDateTime(e.createdAt)}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
       </div>
     </>
   );

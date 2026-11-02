@@ -2,7 +2,7 @@ import "server-only";
 import { headers } from "next/headers";
 
 // Email is optional. Set RESEND_API_KEY to turn on password-reset emails, customer
-// invites and contact-form notifications. EMAIL_FROM and CONTACT_EMAIL have defaults.
+// invites. EMAIL_FROM has a default.
 
 const DEFAULT_FROM = "Orange Door Pub Trivia <hello@orangedoorpubtrivia.com>";
 
@@ -13,11 +13,6 @@ export function emailConfigured() {
 /** Who emails come from. The address's domain must be verified in Resend. */
 export function emailFrom() {
   return process.env.EMAIL_FROM?.trim() || DEFAULT_FROM;
-}
-
-/** Where contact-form enquiries are emailed: CONTACT_EMAIL, or the admin's address. */
-export function contactEmail() {
-  return process.env.CONTACT_EMAIL?.trim() || process.env.ADMIN_EMAIL?.trim() || "";
 }
 
 type Email = { to: string; subject: string; text: string; html?: string; replyTo?: string };

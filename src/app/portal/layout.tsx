@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { requireUser, accessHasExpired } from "@/lib/auth";
 import { PortalHeader } from "@/components/portal/portal-header";
 import { formatDate } from "@/lib/format";
@@ -22,11 +21,7 @@ export default async function PortalLayout({ children }: { children: React.React
       {expired && (
         <div className="border-b border-tang/30 bg-tang/10">
           <p className="wrap py-3 text-[0.95rem] text-[#fbe9b5]">
-            Your access ended on {formatDate(user.accessExpiresAt)}.{" "}
-            <Link href="/contact-us" className="font-semibold text-tang underline underline-offset-4">
-              Contact us to renew
-            </Link>
-            .
+            Your access ended on {formatDate(user.accessExpiresAt)}. Email us to renew.
           </p>
         </div>
       )}

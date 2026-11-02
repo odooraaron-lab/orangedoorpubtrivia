@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/session";
 import { safeNextPath } from "@/lib/auth";
@@ -20,12 +19,6 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <div className="panel mt-8 p-6 sm:p-8">
         <LoginForm next={safeNextPath(next, "") || undefined} />
       </div>
-      <p className="mt-6 text-center text-mist">
-        Need an account?{" "}
-        <Link href="/contact-us" className="text-white underline underline-offset-4">
-          Contact us
-        </Link>
-      </p>
     </>
   );
 }

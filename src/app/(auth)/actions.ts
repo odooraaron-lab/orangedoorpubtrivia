@@ -60,7 +60,7 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
     return { error: "That email and password don't match. Check them and try again.", email };
   }
   if (!user.isActive) {
-    return { error: "This account is switched off. Contact us to turn it back on.", email };
+    return { error: "This account is switched off. Email us to turn it back on.", email };
   }
 
   await createSession(user.id);
@@ -86,7 +86,7 @@ export async function requestPasswordReset(_prev: FormState, formData: FormData)
 
   if (!emailConfigured()) {
     return {
-      error: "Password reset emails aren't switched on yet. Contact us and we'll reset your password for you.",
+      error: "Password reset emails aren't switched on yet. Email us and we'll reset your password for you.",
       email,
     };
   }

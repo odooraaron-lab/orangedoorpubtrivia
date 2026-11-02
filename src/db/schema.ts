@@ -161,16 +161,6 @@ export const downloads = pgTable(
   (t) => [index("downloads_user_idx").on(t.userId), index("downloads_file_idx").on(t.fileId)],
 );
 
-export const enquiries = pgTable("enquiries", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull().default(""),
-  email: text("email").notNull(),
-  phone: text("phone").notNull().default(""),
-  message: text("message").notNull().default(""),
-  isHandled: boolean("is_handled").notNull().default(false),
-  ...timestamps,
-});
-
 export type User = typeof users.$inferSelect;
 export type Category = typeof categories.$inferSelect;
 export type Playlist = typeof playlists.$inferSelect;

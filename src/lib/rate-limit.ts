@@ -4,7 +4,7 @@ import { and, count, eq, gt, like, not } from "drizzle-orm";
 import { db } from "@/db";
 import { authAttempts } from "@/db/schema";
 
-// Limits on the public forms (login, password reset, contact), so nobody can hammer them.
+// Limits on the public forms (login, password reset), so nobody can hammer them.
 // Attempts are kept in auth_attempts: logins under the email address, other forms under
 // "<form>:<key>" (an email can't contain a colon), with the sender's IP address.
 

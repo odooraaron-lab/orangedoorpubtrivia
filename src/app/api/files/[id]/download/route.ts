@@ -26,7 +26,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const target = file.externalUrl ? (inline ? file.externalUrl : directDownloadUrl(file.externalUrl)) : null;
 
   if (!target) {
-    return new NextResponse("This file can't be downloaded right now. Please contact us.", { status: 503 });
+    return new NextResponse("This file can't be downloaded right now. Please email us.", { status: 503 });
   }
 
   if (!inline) {

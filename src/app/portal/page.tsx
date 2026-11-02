@@ -28,12 +28,9 @@ export default async function PortalHomePage() {
           <h2 className="text-2xl">{expired ? "Your access has ended" : "No games yet"}</h2>
           <p className="mt-2 text-mist">
             {expired
-              ? "Contact us to renew and your games will be back straight away."
+              ? "Email us to renew and your games will be back straight away."
               : "There aren't any games on your account yet. If you were expecting some, let us know."}
           </p>
-          <Link href="/contact-us" className="btn btn-orange mt-6">
-            Contact us
-          </Link>
         </div>
       ) : (
         <section aria-labelledby="games-heading" className="mt-10">

@@ -2,10 +2,10 @@
 
 The customer portal for Orange Door Pub Trivia, at www.orangedoorpubtrivia.com. Built from the Bar Beats Bingo portal, with the bingo player and checker taken out.
 
-- **Public pages**: a short home page and a contact form. No sales pitch: the site is for customers to get their files.
+- **Private**: there's no public website. The address opens the login page, and every page tells search engines not to list it (`robots.txt` blocks the whole site, plus `noindex` on every page).
 - **Customer portal** (`/portal`): after logging in, customers see one page listing every game on their account. Opening a game gives a download button for its **PowerPoint presentation** and each of its **PDFs** (answer sheets, host sheet, scoresheet…).
 - **Phone app**: customers can add the portal to their home screen and open it like an app.
-- **Admin** (`/admin`): add customers, choose what each one can download (every game, or single games), set an access end date, paste each game's Zoho WorkDrive links, see who downloaded what, and read contact-form enquiries.
+- **Admin** (`/admin`): add customers, choose what each one can download (every game, or single games), set an access end date, paste each game's Zoho WorkDrive links, see who downloaded what.
 
 Built with Next.js 16 and Neon Postgres (via Drizzle ORM). Files stay in Zoho WorkDrive; the site stores their share links. Runs on Vercel.
 
@@ -30,11 +30,11 @@ In Vercel, **Settings → Domains → Add** `orangedoorpubtrivia.com` and `www.o
 
 Without email, everything still works: when a customer forgets their password, open their page in Admin and click **Send a password reset link**, which gives you a link to send them yourself.
 
-To send emails automatically (password resets, customer invites, enquiry notifications):
+To send emails automatically (password resets and customer invites):
 
 1. In [Resend](https://resend.com), under **Domains**, add `orangedoorpubtrivia.com` and add the DNS records it shows. Wait until it says **Verified**.
-2. Add `RESEND_API_KEY` in Vercel. Optionally add `EMAIL_FROM` (defaults to `Orange Door Pub Trivia <hello@orangedoorpubtrivia.com>`) and `CONTACT_EMAIL` (where enquiries go; defaults to `ADMIN_EMAIL`). Redeploy.
-3. In the admin, open **Enquiries → Send a test email**. If it can't send, it says why.
+2. Add `RESEND_API_KEY` in Vercel. Optionally add `EMAIL_FROM` (defaults to `Orange Door Pub Trivia <hello@orangedoorpubtrivia.com>`). Redeploy.
+3. On the admin **Overview**, click **Send me a test email**. If it can't send, it says why.
 
 ---
 
@@ -62,13 +62,13 @@ Set **Access ends** for subscriptions; after that date they can still log in but
 
 ## Changing the wording or graphics
 
-- Home page wording: `src/app/(site)/page.tsx`. Site name and links: `src/lib/site.ts`.
-- Logo: `public/brand/logo.png`. Home page photo: `public/images/trivia-night.webp`. App icons: `public/icons/` and `src/app/icon.png`, `src/app/apple-icon.png`.
+- Site name: `src/lib/site.ts`.
+- Logo: `public/brand/logo.png`. App icons: `public/icons/` and `src/app/icon.png`, `src/app/apple-icon.png`.
 - Colours and fonts: the top of `src/app/globals.css` (brand orange is `#f47d20`; headings use Anton, the handwritten lines use Permanent Marker).
 
 ## Troubleshooting
 
-**Logging in fails, or the contact form says "couldn't be sent".** The site can't reach the database. In Vercel, open **Storage → your Neon database → Connect Project**, make sure this project is connected for **Production** (and Preview), then **Deployments → Redeploy**. A deploy without a database stops with this message in the build log, and the previous version stays live.
+**Logging in fails.** The site can't reach the database. In Vercel, open **Storage → your Neon database → Connect Project**, make sure this project is connected for **Production** (and Preview), then **Deployments → Redeploy**. A deploy without a database stops with this message in the build log, and the previous version stays live.
 
 **Lost the admin login?** Set `ADMIN_EMAIL`, `ADMIN_PASSWORD` and `ADMIN_RESET_PASSWORD=yes` in Vercel, redeploy, log in, then remove all three.
 
@@ -92,13 +92,12 @@ After changing `src/db/schema.ts`, run `npm run db:generate` to create a migrati
 | `DATABASE_URL` | Everything (Neon) |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Creating the first admin |
 | `APP_URL` | Links in emails (optional) |
-| `RESEND_API_KEY` (plus optional `EMAIL_FROM`, `CONTACT_EMAIL`) | Emails (optional) |
+| `RESEND_API_KEY` (plus optional `EMAIL_FROM`) | Emails (optional) |
 | `ADMIN_RESET_PASSWORD` | Set to `yes` with `ADMIN_EMAIL` and `ADMIN_PASSWORD` to reset a lost admin login on the next deploy, then remove all three |
 
 ## How it fits together
 
 ```
-src/app/(site)       home page and contact form
 src/app/(auth)       login, forgot password, choose password
 src/app/portal       customer pages: the list of games, then each game's downloads
 src/app/admin        admin area

@@ -20,7 +20,7 @@ import {
   customerTimeline,
   type ActivityFilter,
 } from "@/lib/customer-activity";
-import { deleteUser, saveAccess, sendPasswordLink, setUserPassword, updateUser } from "../actions";
+import { deleteUser, resetUserHistory, saveAccess, sendPasswordLink, setUserPassword, updateUser } from "../actions";
 
 export const metadata: Metadata = { title: "Customer" };
 
@@ -157,6 +157,25 @@ export default async function UserPage({
 
         <h3 className="mt-8 font-sans text-lg font-bold">Everything they&apos;ve done</h3>
         <ActivityTimeline events={timeline.events} filter={filter} />
+      </section>
+
+      <section className="mt-10 max-w-3xl rounded-[var(--radius-card)] border border-line p-6 sm:p-8">
+        <h2 className="font-sans text-xl font-bold">Reset history</h2>
+        <p className="mt-2 text-mist">
+          Clears their downloads, logins and everything else in their activity, so the &quot;Downloaded&quot; marks
+          and the timeline start fresh. Their account, password, access and settings stay as they are.
+        </p>
+        <div className="mt-5">
+          <ActionForm
+            action={resetUserHistory.bind(null, user.id)}
+            submitLabel="Reset history"
+            pendingLabel="Resetting…"
+            submitClassName="btn btn-ghost"
+            confirm={`Clear all history for ${title}? Their account and access stay as they are. This can't be undone.`}
+          >
+            {null}
+          </ActionForm>
+        </div>
       </section>
 
       {!isSelf && (

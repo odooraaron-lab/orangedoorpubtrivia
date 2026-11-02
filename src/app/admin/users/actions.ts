@@ -5,7 +5,7 @@ import { refresh } from "next/cache";
 import { and, eq, ne } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
-import { accessGrants, users } from "@/db/schema";
+import { accessGrants, activity, authAttempts, downloads, users } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import { hashPassword, passwordProblem } from "@/lib/password";
 import { destroyAllSessionsFor } from "@/lib/session";
@@ -209,4 +209,29 @@ export async function deleteUser(id: string, _prev: ActionResult, _fd: FormData)
   if (id === admin.id) return fail("You can't delete your own account.");
   await db.delete(users).where(eq(users.id, id));
   redirect("/admin/users");
+}
+
+/**
+ * Clears a customer's history (downloads, logins, everything on their timeline) so they
+ * start fresh. Their account, password, access and settings stay exactly as they are.
+ */
+export async function resetUserHistory(id: string, _prev: ActionResult, _fd: FormData): Promise<ActionResult> {
+  await requireAdmin();
+  if (!uuid.safeParse(id).success) return fail("Unknown customer.");
+  const [user] = await db.select({ email: users.email }).from(users).where(eq(users.id, id)).limit(1);
+  if (!user) return fail("Unknown customer.");
+  try {
+    await db.transaction(async (tx) => {
+      await tx.delete(activity).where(eq(activity.userId, id));
+      await tx.delete(downloads).where(eq(downloads.userId, id));
+      // Failed login attempts too, so a locked-out customer can try again straight away.
+      await tx.delete(authAttempts).where(eq(authAttempts.email, user.email));
+      await tx.update(users).set({ lastLoginAt: null }).where(eq(users.id, id));
+    });
+  } catch (err) {
+    console.error("[admin] reset history failed", err);
+    return fail("Their history couldn't be reset. Reload the page and try again.");
+  }
+  refresh();
+  return ok("History reset. Their account, password and access are unchanged.");
 }

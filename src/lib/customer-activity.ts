@@ -86,7 +86,7 @@ export async function customerDownloadedShows(userId: string): Promise<Downloade
     left join playlists p on p.id = a.playlist_id
     left join categories c on c.id = p.category_id
     left join files f on f.id = a.file_id
-    where a.user_id = ${userId} and a.kind = 'downloaded'
+    where a.user_id = ${userId} and a.kind = 'downloaded' and a.detail <> 'Trivia software'
     group by a.playlist_id, p.name, c.name
     order by max(a.created_at) desc`);
   return rows.map((r) => ({

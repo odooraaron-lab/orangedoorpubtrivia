@@ -48,7 +48,7 @@ function describe(e: ActivityEvent) {
           Downloaded <span className="text-white">{e.detail}</span>
           {e.showName ? (
             <> from {showLink(e.showId, e.showName)}</>
-          ) : (
+          ) : e.detail === "Trivia software" ? null : (
             <span className="text-fog"> (game since deleted)</span>
           )}
         </>

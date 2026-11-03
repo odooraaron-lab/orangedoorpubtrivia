@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LogOut } from "lucide-react";
+import { Download, LogOut } from "lucide-react";
 import { logout } from "@/app/(auth)/actions";
 import { Logo } from "@/components/logo";
 import type { SessionUser } from "@/lib/session";
@@ -32,6 +32,12 @@ export function PortalHeader({ user, area }: { user: SessionUser; area: "portal"
           ))}
         </nav>
         <div className="ml-auto flex items-center gap-3">
+          {area === "portal" && (
+            // A file download (route handler), not a page, so a plain link.
+            <a href="/api/software" className="btn btn-orange btn-sm">
+              <Download size={16} aria-hidden /> Download Trivia software
+            </a>
+          )}
           <span className="hidden max-w-[220px] truncate text-sm text-mist md:block" title={user.email}>
             {user.venue || user.name || user.email}
           </span>

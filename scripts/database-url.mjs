@@ -5,8 +5,22 @@
 
 const PREFERRED = ["DATABASE_URL", "POSTGRES_URL", "NEON_DATABASE_URL"];
 
+/**
+ * Neon's connection strings say sslmode=require. The pg driver treats that as verify-full
+ * (check the certificate) and logs a warning on every new connection that this will change.
+ * Saying verify-full outright keeps the same, stricter behaviour and stops the warning.
+ */
+export function withVerifiedSsl(url) {
+  return url.replace(/([?&]sslmode=)(prefer|require|verify-ca)(?=&|$)/, "$1verify-full");
+}
+
 /** @returns {{ key: string, url: string } | null} */
 export function findDatabaseUrl(env = process.env) {
+  const found = findRawDatabaseUrl(env);
+  return found ? { key: found.key, url: withVerifiedSsl(found.url) } : null;
+}
+
+function findRawDatabaseUrl(env) {
   for (const key of PREFERRED) {
     if (env[key]) return { key, url: env[key] };
   }

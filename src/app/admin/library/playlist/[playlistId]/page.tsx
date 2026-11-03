@@ -61,7 +61,7 @@ export default async function PlaylistAdminPage({ params }: { params: Promise<{ 
   const totalBytes = items.reduce((sum, f) => sum + (f.sizeBytes ?? 0), 0);
   const { pdfs, presentation } = splitGameFiles(items);
   // Remounts the link boxes after a save, so they show what was saved.
-  const editorKey = items.map((f) => `${f.id}:${f.externalUrl}:${f.title}`).join("|");
+  const editorKey = items.map((f) => `${f.id}:${f.externalUrl}:${f.title}:${f.fileName}`).join("|");
 
   return (
     <>

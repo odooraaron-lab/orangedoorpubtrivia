@@ -69,13 +69,7 @@ export function GameFilesEditor({
           </div>
         </div>
         <p className="hint !mt-0">
-          {presentation?.fileName ? (
-            <>
-              File: <span className="text-white">{presentation.fileName}</span>
-            </>
-          ) : (
-            "The .pptx file that runs the quiz on the screen."
-          )}
+          <FileNameNote saved={presentation} fallback="The .pptx file that runs the quiz on the screen." />
         </p>
       </fieldset>
 
@@ -114,9 +108,12 @@ export function GameFilesEditor({
                   onChange={(e) => update(r.key, { url: e.target.value })}
                 />
               </div>
+              <p className="hint !mt-0 sm:col-span-3">
+                <FileNameNote saved={pdfs.find((f) => f.id === r.id && f.externalUrl === r.url) ?? null} fallback="" />
+              </p>
               <button
                 type="button"
-                className="btn btn-quiet justify-self-end px-2"
+                className="btn btn-quiet justify-self-end px-2 sm:col-start-3 sm:row-start-1"
                 onClick={() => remove(r.key)}
                 aria-label={`Remove PDF ${i + 1}`}
                 title="Remove this PDF"
@@ -137,5 +134,23 @@ export function GameFilesEditor({
         </p>
       </fieldset>
     </div>
+  );
+}
+
+/** Under a saved link: the file name Zoho gave us, or a note that we couldn't read it. */
+function FileNameNote({ saved, fallback }: { saved: Saved | null; fallback: string }) {
+  if (!saved) return <>{fallback}</>;
+  if (saved.fileName) {
+    return (
+      <>
+        File: <span className="text-white">{saved.fileName}</span>
+      </>
+    );
+  }
+  return (
+    <span className="text-tang">
+      Zoho didn&apos;t tell us this file&apos;s name when we checked the link, so we couldn&apos;t confirm it&apos;s the
+      right file. Customers can still download it. Press Save game files to check it again.
+    </span>
   );
 }
